@@ -1,4 +1,5 @@
-# Think with 3D: Geometric Imagination Grounded Spatial Reasoning from Limited Views
+<div align="center">
+<h1>Think with 3D: Geometric Imagination Grounded Spatial Reasoning from Limited Views</h1>
 [![arXiv](https://img.shields.io/badge/arXiv-PDF-red)](https://arxiv.org/pdf/2510.18632)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Paper-orange)](https://huggingface.co/papers/2510.18632)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Dataset-yellow)](https://huggingface.co/datasets/jankin123/3DThinker-10K)
@@ -6,7 +7,7 @@
 **Tsinghua University SIGS**; **Meituan**
 
 Zhangquan Chen, Manyuan Zhang, Xinlei Yu, Xufang Luo, Mingze Sun, Zihao Pan, Yan Feng, Peng Pei, Xunliang Cai, Ruqi Huang
-
+</div>
 
 ## Overview
 <img src="assets/teaser.png" alt="drawing" width="500"/>
