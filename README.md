@@ -2,8 +2,8 @@
 <h1>Think with 3D: Geometric Imagination Grounded Spatial Reasoning from Limited Views</h1>
 
 <a href="https://arxiv.org/pdf/2510.18632"><img src="https://img.shields.io/badge/arXiv-2503.11651-b31b1b" alt="arXiv"></a>
-<a href="https://huggingface.co/papers/2510.18632"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Demo-orange'></a>
-<a href="https://huggingface.co/datasets/jankin123/3DThinker-10K"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Demo-blue'></a>
+<a href="https://huggingface.co/papers/2510.18632"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Paper-orange'></a>
+<a href="https://huggingface.co/datasets/jankin123/3DThinker-10K"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue'></a>
 
 **Tsinghua University SIGS**; **Meituan**
 
