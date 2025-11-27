@@ -7,7 +7,9 @@
 
 **Tsinghua University SIGS**; **Meituan**
 
-Zhangquan Chen, Manyuan Zhang, Xinlei Yu, Xufang Luo, Mingze Sun, Zihao Pan, Yan Feng, Peng Pei, Xunliang Cai, Ruqi Huang
+Zhangquan Chen, Manyuan Zhang, Xinlei Yu, Xufang Luo, Mingze Sun, Zihao Pan, 
+
+Yan Feng, Peng Pei, Xunliang Cai, Ruqi Huang
 </div>
 
 ## Overview
