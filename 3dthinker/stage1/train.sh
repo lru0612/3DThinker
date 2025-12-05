@@ -13,7 +13,7 @@ python src/main.py \
     --save_steps 2000 \
     --save_total_limit 1 \
     --stage stage1 \
-    --data_path ../../data/data_output3d_begin_10k_resized.jsonl \
+    --data_path ../../data/example.jsonl \
     --log_file ./log.txt \
     --save_model_path ../../models/3DThinker-S1-Qwen2.5-VL-3B_mlp6_lr1e-4_latent12 \
     --wandb_name 3DThinker-S1-Qwen2.5-VL-3B_mlp6_lr1e-4_latent12
