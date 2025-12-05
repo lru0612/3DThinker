@@ -22,7 +22,7 @@ Though recent advances in vision–language models (VLMs) have achieved remarkab
 
 [25/11/18] We release the code for [3DThinker](https://github.com/zhangquanchen/3DThinker), both stage1 and stage2. See **[Training](#training)** for usage.
 
-[25/11/25] We fix some bugs of 3D latent assignment, and release the evaluation result of Qwen2.5-VL-3B.
+[25/11/25] We fix some bugs of 3D latent assignment, and release the evaluation result of 3DThinker-Qwen2.5-VL-3B.
 
 [25/12/05] We replace the full data with the example case, for rechecking.
 
