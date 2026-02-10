@@ -115,7 +115,7 @@ For other base models, you can use eval_xxx.py for evaluation.
 Other benchmarks including [Ego3D-Bench](https://huggingface.co/datasets/vbdai/Ego3D-Bench), [VSI-Bench](https://huggingface.co/datasets/nyu-visionx/VSI-Bench), [SPBench](https://huggingface.co/datasets/hongxingli/SPBench), [CV-Bench](https://huggingface.co/datasets/nyu-visionx/CV-Bench), [SPAR-Bench](https://huggingface.co/datasets/jasonzhango/SPAR-Bench), [ViewSpatial-Bench](https://huggingface.co/datasets/lidingm/ViewSpatial-Bench), [MMSI-Bench](https://huggingface.co/datasets/RunsenXu/MMSI-Bench).
 
 ## OneCase
-A case for training on Mindcube_Train and testing on MindCube-Tiny is listed below:
+A case for training on Mindcube_Train and testing on MindCube-Tiny are listed below:
 * [Training data](https://huggingface.co/datasets/jankin123/3DThinker-10K), which is for MindCube training.
 * [Model](https://huggingface.co/jankin123/3DThinker-Mindcube), which is trained after stage1 on Qwen2.5-3B-VL.
 Note that Tab. 2 is trained on a different training data.
