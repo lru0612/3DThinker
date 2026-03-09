@@ -13,7 +13,6 @@ is_reward_customized_from_vlm_module=True
 echo "data_paths: $data_paths"
 echo "image_folders: $image_folders"
 
-## 修改40k->400
 export EXP_NAME="3DThinker-S1+S2-Qwen2.5-VL-3B_lr1e-5_gen8"
 
 TASK_TYPE="rec"
