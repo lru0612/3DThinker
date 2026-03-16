@@ -44,12 +44,14 @@ pip install -r envs/requirements_stage1.txt
 conda create -n 3DThinker-stage2 python=3.10 -y && conda activate 3DThinker-stage2
 bash 3dthinker/stage2/setup.sh
 ```
+Then, replace the transformers==4.49.0 with the transformers version in 3dthinker/stage1/transformers.
+
 If the installed trl version conflicts with our repository, replace it with the local copy by running:
 ```bash
 cp -rf 3dthinker/stage2/package/trl /home/tiger/anaconda3/envs/3DThinker-stage2/lib/python3.10/site-packages/
 ```
-* Remark：You can refer to envs/requirements_stage2.txt to configure the environment.
-
+* Remark：You can refer to envs/requirements_stage2.txt to configure the environment. Remember to use the transformers version the same as stage 1.
+  
 ### SFT
 Follow [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) for environment setup, which is for SFT training and weight merging.
 ```bash
