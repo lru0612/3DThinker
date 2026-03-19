@@ -5,7 +5,7 @@ PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 export REPO_HOME="${PROJECT_ROOT}"
 echo "REPO_HOME: $REPO_HOME"
 # on remote
-data_paths="../../data/example.jsonl"
+data_paths="../../data/example.json"
 
 image_folders="default"
 model_path="../../models/3DThinker-S1-Qwen2.5-VL-3B_mlp6_lr1e-4_latent12"
