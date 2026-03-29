@@ -574,7 +574,7 @@ latent_end_idx = processor.tokenizer("<|latent_end|>", return_tensors="pt")["inp
 model.eval()
 
 projector_weights = load_model_with_projector(load_model_path)
-latent_size = 16
+latent_size = 12
 projector_model = projector(mlp_depth=4, mm_hidden_size=2048, hidden_size=2048, latent_size = latent_size, fusion_input = 391, fusion_output = 1374).to(model.device)
 
 # 加载权重
@@ -744,29 +744,32 @@ with open(file_path, 'r', encoding='utf-8') as file:
                 points_3d_org = points_3d_org[conf_mask_org]
                 points_rgb_org = points_rgb_mid[conf_mask_org]
                 
-                print("Converting to COLMAP format")
-                print(points_3d.shape)
-                print(points_xyf.shape)
-                print(points_rgb.shape)
-                reconstruction = batch_np_matrix_to_pycolmap_wo_track(
-                    points_3d,
-                    points_xyf,
-                    points_rgb,
-                    extrinsic,
-                    intrinsic,
-                    image_size,
-                    shared_camera=shared_camera,
-                    camera_type=camera_type,
-                )
-
-                print(f"Saving reconstruction to {scene_dir}/sparse_{num}")
                 sparse_reconstruction_dir = os.path.join(scene_dir, f"sparse_{num}")
                 os.makedirs(sparse_reconstruction_dir, exist_ok=True)
-                reconstruction.write(sparse_reconstruction_dir)
+
+                try:
+                    print("Converting to COLMAP format")
+                    print(points_3d.shape)
+                    print(points_xyf.shape)
+                    print(points_rgb.shape)
+                    reconstruction = batch_np_matrix_to_pycolmap_wo_track(
+                        points_3d,
+                        points_xyf,
+                        points_rgb,
+                        extrinsic,
+                        intrinsic,
+                        image_size,
+                        shared_camera=shared_camera,
+                        camera_type=camera_type,
+                    )
+                    print(f"Saving reconstruction to {scene_dir}/sparse_{num}")
+                    reconstruction.write(sparse_reconstruction_dir)
+                except Exception as e:
+                    print(f"WARNING: COLMAP reconstruction skipped: {e}")
 
                 # Save point cloud for fast visualization
-                trimesh.PointCloud(points_3d, colors=points_rgb).export(os.path.join(scene_dir, f"sparse_{num}/points.ply"))
-                trimesh.PointCloud(points_3d_org, colors=points_rgb_org).export(os.path.join(scene_dir, f"sparse_{num}/vggt_points.ply"))
+                trimesh.PointCloud(points_3d, colors=points_rgb).export(os.path.join(sparse_reconstruction_dir, "points.ply"))
+                trimesh.PointCloud(points_3d_org, colors=points_rgb_org).export(os.path.join(sparse_reconstruction_dir, "vggt_points.ply"))
                 
                 for img_path in new_image_paths:
                     img_name = os.path.basename(img_path)  # 提取原始文件名

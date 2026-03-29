@@ -3292,7 +3292,7 @@ class GenerationMixin:
         latent_end = False
         latent_num = 0
         latent_end_num = 0
-        MAX_LATENT_LEN = 8
+        MAX_LATENT_LEN = 12
         cur_bs = input_ids.shape[0]
 
         while self._has_unfinished_sequences(
