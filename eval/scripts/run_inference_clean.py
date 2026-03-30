@@ -144,7 +144,15 @@ Examples:
     )
 
     parser.add_argument(
-        "--verbose", 
+        "--prompt-mode",
+        type=str,
+        default="3d",
+        choices=["3d", "plain"],
+        help="Prompt mode: '3d' uses 3D latent token instructions (default for 3DThinker models), "
+             "'plain' uses standard CoT reasoning without 3D imagination"
+    )
+    parser.add_argument(
+        "--verbose",
         action="store_true",
         help="Enable verbose output"
     )
@@ -405,7 +413,8 @@ def main():
             batch_size=args.batch_size,
             max_new_tokens=args.max_new_tokens,
             temperature=args.temperature,
-            top_p=args.top_p
+            top_p=args.top_p,
+            prompt_mode=args.prompt_mode,
         )
         
         print(f"Inference completed successfully! Results saved to {args.output_file}")

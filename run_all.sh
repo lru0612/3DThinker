@@ -26,7 +26,7 @@ log_step() {
 ###############################################################################
 # Step 1: 环境配置
 ###############################################################################
-log_step "Step 1/7: 配置 conda 环境"
+log_step "Step 1/8: 配置 conda 环境"
 
 # 初始化 conda
 if [ -f "$HOME/anaconda3/etc/profile.d/conda.sh" ]; then
@@ -54,7 +54,7 @@ echo "当前环境: $CONDA_ENV"
 ###############################################################################
 # Step 2: 安装依赖
 ###############################################################################
-log_step "Step 2/7: 安装依赖"
+log_step "Step 2/8: 安装依赖"
 
 pip install -r "$REPO_ROOT/envs/requirements_stage1.txt"
 
@@ -68,7 +68,7 @@ pip install pycolmap 2>/dev/null || echo "WARNING: pycolmap 安装失败，COLMA
 ###############################################################################
 # Step 3: 下载模型
 ###############################################################################
-log_step "Step 3/7: 下载模型"
+log_step "Step 3/8: 下载模型"
 
 mkdir -p "$MODEL_DIR"
 
@@ -94,7 +94,7 @@ fi
 ###############################################################################
 # Step 4: 下载 MindCube 数据
 ###############################################################################
-log_step "Step 4/7: 下载 MindCube 数据"
+log_step "Step 4/8: 下载 MindCube 数据"
 
 # 克隆 MindCube 仓库（含 eval JSONL）
 if [ -f "$EVAL_JSONL" ]; then
@@ -141,9 +141,9 @@ if [ ! -d "$REPO_ROOT/data/other_all_image" ]; then
 fi
 
 ###############################################################################
-# Step 5: 运行 Eval Inference
+# Step 5: 运行 Eval Inference（3D 想象模式）
 ###############################################################################
-log_step "Step 5/7: 运行 Eval 推理"
+log_step "Step 5/7: 运行 Eval 推理（3DThinker，含 3D 想象）"
 
 mkdir -p "$EVAL_RESULTS_DIR"
 
@@ -155,35 +155,84 @@ python scripts/run_inference_clean.py \
     --model-type qwen2.5vl \
     --model-path "$MODEL_DIR/$MODEL_NAME" \
     --input-file "$EVAL_JSONL" \
-    --output-dir "$EVAL_RESULTS_DIR"
+    --output-dir "$EVAL_RESULTS_DIR/3d" \
+    --prompt-mode 3d
 
 ###############################################################################
-# Step 6: 运行 Eval 评估
+# Step 6: 运行 Eval Inference（普通 CoT，不做 3D 想象）
 ###############################################################################
-log_step "Step 6/7: 计算评估指标"
-
-# 找到推理输出文件
-INFERENCE_OUTPUT=$(ls -t "$EVAL_RESULTS_DIR"/*.jsonl 2>/dev/null | head -1)
-if [ -z "$INFERENCE_OUTPUT" ]; then
-    echo "ERROR: 未找到推理输出文件"
-    exit 1
-fi
-echo "评估文件: $INFERENCE_OUTPUT"
+log_step "Step 6/7: 运行 Eval 推理（普通 CoT，不做 3D 想象）"
 
 cd "$REPO_ROOT/eval"
+python scripts/run_inference_clean.py \
+    --model-type qwen2.5vl \
+    --model-path "$MODEL_DIR/$MODEL_NAME" \
+    --input-file "$EVAL_JSONL" \
+    --output-dir "$EVAL_RESULTS_DIR/plain" \
+    --prompt-mode plain
+
+###############################################################################
+# Step 7: 计算两种模式的评估指标并对比
+###############################################################################
+log_step "Step 7/7: 计算评估指标并对比"
+
+cd "$REPO_ROOT/eval"
+
+# 3D 想象模式
+INFERENCE_3D=$(ls -t "$EVAL_RESULTS_DIR/3d/"*.jsonl 2>/dev/null | head -1)
+if [ -z "$INFERENCE_3D" ]; then
+    echo "ERROR: 未找到 3D 模式推理输出"
+    exit 1
+fi
 python scripts/run_evaluation.py \
     -t basic \
-    -i "$INFERENCE_OUTPUT" \
-    -o "$EVAL_RESULTS_DIR/eval_results.json"
+    -i "$INFERENCE_3D" \
+    -o "$EVAL_RESULTS_DIR/3d/eval_results.json"
 
-echo ""
-echo "Eval 结果已保存到: $EVAL_RESULTS_DIR/eval_results.json"
-cat "$EVAL_RESULTS_DIR/eval_results.json"
+# 普通 CoT 模式
+INFERENCE_PLAIN=$(ls -t "$EVAL_RESULTS_DIR/plain/"*.jsonl 2>/dev/null | head -1)
+if [ -z "$INFERENCE_PLAIN" ]; then
+    echo "ERROR: 未找到 plain 模式推理输出"
+    exit 1
+fi
+python scripts/run_evaluation.py \
+    -t basic \
+    -i "$INFERENCE_PLAIN" \
+    -o "$EVAL_RESULTS_DIR/plain/eval_results.json"
+
+# 合并对比结果
+export EVAL_RESULTS_DIR
+python3 - <<'PYEOF'
+import json, os, sys
+
+results_dir = os.environ.get("EVAL_RESULTS_DIR", "results/eval")
+
+def load_acc(path):
+    with open(path) as f:
+        d = json.load(f)
+    return d["results"]["gen_cogmap_accuracy"]
+
+acc_3d    = load_acc(f"{results_dir}/3d/eval_results.json")
+acc_plain = load_acc(f"{results_dir}/plain/eval_results.json")
+
+summary = {
+    "3d_thinking_accuracy":    round(acc_3d,    4),
+    "plain_cot_accuracy":      round(acc_plain, 4),
+    "delta (3d - plain)":      round(acc_3d - acc_plain, 4),
+}
+print("\n===== 结果对比 =====")
+for k, v in summary.items():
+    print(f"  {k}: {v}")
+
+with open(f"{results_dir}/comparison.json", "w") as f:
+    json.dump(summary, f, indent=2, ensure_ascii=False)
+print(f"\n对比结果已保存到: {results_dir}/comparison.json")
+PYEOF
 
 ###############################################################################
-# Step 7: 点云恢复
+# Step 8: 点云恢复
 ###############################################################################
-log_step "Step 7/7: 运行点云恢复"
+log_step "Step 8/8: 运行点云恢复"
 
 # 设置 PYTHONPATH（vggt 模块在 preprocessing/feature/ 下）
 export PYTHONPATH="$REPO_ROOT/preprocessing/feature:${PYTHONPATH:-}"
@@ -196,8 +245,10 @@ echo "========================================"
 echo "全部完成!"
 echo "========================================"
 echo ""
-echo "Eval 结果:    $EVAL_RESULTS_DIR/eval_results.json"
-echo "点云输出:     $RECON_RESULTS_DIR/"
+echo "3D 想象 Eval:  $EVAL_RESULTS_DIR/3d/eval_results.json"
+echo "普通 CoT Eval: $EVAL_RESULTS_DIR/plain/eval_results.json"
+echo "对比结果:      $EVAL_RESULTS_DIR/comparison.json"
+echo "点云输出:      $RECON_RESULTS_DIR/"
 echo ""
 echo "每个样本目录 (sparse_N/) 包含:"
 echo "  - points.ply          3DThinker 恢复的点云"

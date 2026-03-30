@@ -365,20 +365,22 @@ class QwenInferenceEngine(BaseInferenceEngine):
         for idx, data in enumerate(batch_data):
             try:
                 # Extract and validate data
-                ## TODO，修改这里
                 model_name = os.path.basename(self.model_path)
                 prompt_complete = data.get('input_prompt', '')
-                ## mid
-                ## end
-                if "end" in self.model_path:
-                    PROMPT = "\nFirst think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively. Special tokens should be used to represent mental 3D scene at the end of your response, i.e., <think> reasoning process here </think><answer> answer here </answer>...mental 3D scene here."
-                ## begin
-                elif "begin" in self.model_path:
-                    PROMPT = "\nFirst imagine the mental 3D scene, think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively. Special tokens should be used to represent mental 3D scene at the beginning of your response, i.e., mental 3D scene here <think> reasoning process here </think><answer> answer here </answer>."
-                else:
-                    PROMPT = "\nFirst think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively. Special tokens should be used to represent 3D imagery during the reasoning process, i.e., <think> reasoning process with special tokens here </think><answer> answer here </answer>."
-                # PROMPT = ""
-                if "3dthinker" in model_name:
+                prompt_mode = kwargs.get('prompt_mode', '3d')
+
+                if prompt_mode == 'plain':
+                    # Standard CoT reasoning without 3D imagination
+                    PROMPT = "\nFirst think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>."
+                    prompt = get_content_after_question(prompt_complete) + PROMPT
+                elif "3dthinker" in model_name:
+                    # 3D imagination mode: select prompt by model checkpoint name
+                    if "end" in self.model_path:
+                        PROMPT = "\nFirst think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively. Special tokens should be used to represent mental 3D scene at the end of your response, i.e., <think> reasoning process here </think><answer> answer here </answer>...mental 3D scene here."
+                    elif "begin" in self.model_path:
+                        PROMPT = "\nFirst imagine the mental 3D scene, think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively. Special tokens should be used to represent mental 3D scene at the beginning of your response, i.e., mental 3D scene here <think> reasoning process here </think><answer> answer here </answer>."
+                    else:
+                        PROMPT = "\nFirst think about the reasoning process in the mind and then provide the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively. Special tokens should be used to represent 3D imagery during the reasoning process, i.e., <think> reasoning process with special tokens here </think><answer> answer here </answer>."
                     prompt = get_content_after_question(prompt_complete) + PROMPT
                 else:
                     prompt = prompt_complete
@@ -450,10 +452,9 @@ class QwenInferenceEngine(BaseInferenceEngine):
                 del result['grounded_cogmap_description']
                 del result['aug_cogmap_gen_instruction']
                 del result['reasoning_chain']
-                ## TODO
                 model_name = os.path.basename(self.model_path)
-                # print(model_name)
-                if "3dthinker" in model_name:
+                prompt_mode = kwargs.get('prompt_mode', '3d')
+                if "3dthinker" in model_name or prompt_mode == 'plain':
                     result['reasoning_chain'] = response
                     result['answer'] = extract_answer(response)
                 else:
