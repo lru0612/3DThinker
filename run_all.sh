@@ -120,13 +120,22 @@ else
         echo "下载地址: https://huggingface.co/datasets/MLL-Lab/MindCube"
         exit 1
     }
+    # 如果下载的是 zip 文件则先解压
+    if [ -f "$TMP_DATA_DIR/data.zip" ]; then
+        echo "检测到 data.zip，正在解压..."
+        unzip -q "$TMP_DATA_DIR/data.zip" -d "$TMP_DATA_DIR"
+        echo "解压完成"
+    fi
+
     # 将图片移动到正确位置
     if [ -d "$TMP_DATA_DIR/data/other_all_image" ]; then
         cp -r "$TMP_DATA_DIR/data/other_all_image" "$REPO_ROOT/data/other_all_image"
     elif [ -d "$TMP_DATA_DIR/other_all_image" ]; then
         cp -r "$TMP_DATA_DIR/other_all_image" "$REPO_ROOT/data/other_all_image"
     else
-        echo "WARNING: 下载完成但未找到 other_all_image 目录，请检查 $TMP_DATA_DIR 的内容"
+        echo "WARNING: 解压后未找到 other_all_image 目录，请检查 $TMP_DATA_DIR 的内容"
+        echo "目录结构如下:"
+        ls "$TMP_DATA_DIR"
         echo "手动将图片放到 $REPO_ROOT/data/other_all_image/ 后重新运行"
         exit 1
     fi
