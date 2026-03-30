@@ -96,56 +96,70 @@ fi
 ###############################################################################
 log_step "Step 4/8: 下载 MindCube 数据"
 
-# 克隆 MindCube 仓库（含 eval JSONL）
-if [ -f "$EVAL_JSONL" ]; then
-    echo "MindCube 仓库已存在，跳过克隆"
-else
-    echo "克隆 MindCube 仓库..."
-    git clone https://github.com/mll-lab-nu/MindCube.git "$MINDCUBE_DIR" || {
-        echo "ERROR: 克隆 MindCube 仓库失败"
-        exit 1
-    }
-fi
+TMP_DATA_DIR="$REPO_ROOT/MindCube-data-tmp"
 
-# 下载图片数据
-if [ -d "$REPO_ROOT/data/other_all_image" ]; then
-    echo "MindCube 图片数据已存在，跳过下载"
+# 下载 HuggingFace 数据集（含图片 + eval JSONL）
+if [ -d "$REPO_ROOT/data/other_all_image" ] && [ -f "$EVAL_JSONL" ]; then
+    echo "MindCube 数据已完整，跳过下载"
 else
-    echo "下载 MindCube 图片数据..."
-    TMP_DATA_DIR="$REPO_ROOT/MindCube-data-tmp"
-    huggingface-cli download MLL-Lab/MindCube --repo-type dataset --local-dir "$TMP_DATA_DIR" || {
-        echo ""
-        echo "ERROR: MindCube 图片数据下载失败"
-        echo "请手动下载并放置到 $REPO_ROOT/data/other_all_image/"
-        echo "下载地址: https://huggingface.co/datasets/MLL-Lab/MindCube"
-        exit 1
-    }
-    # 如果下载的是 zip 文件则先解压
-    if [ -f "$TMP_DATA_DIR/data.zip" ]; then
-        echo "检测到 data.zip，正在解压..."
+    if [ ! -d "$TMP_DATA_DIR" ] || [ ! -f "$TMP_DATA_DIR/data.zip" -a ! -d "$TMP_DATA_DIR/data" ]; then
+        echo "下载 MindCube 数据集..."
+        huggingface-cli download MLL-Lab/MindCube --repo-type dataset --local-dir "$TMP_DATA_DIR" || {
+            echo ""
+            echo "ERROR: MindCube 数据集下载失败"
+            echo "下载地址: https://huggingface.co/datasets/MLL-Lab/MindCube"
+            exit 1
+        }
+    else
+        echo "MindCube 数据集已下载，跳过"
+    fi
+
+    # 如果是 zip 文件则先解压
+    if [ -f "$TMP_DATA_DIR/data.zip" ] && [ ! -d "$TMP_DATA_DIR/data" ]; then
+        echo "正在解压 data.zip..."
         unzip -q "$TMP_DATA_DIR/data.zip" -d "$TMP_DATA_DIR"
         echo "解压完成"
     fi
 
-    # 将图片移动到正确位置
-    if [ -d "$TMP_DATA_DIR/data/other_all_image" ]; then
-        cp -r "$TMP_DATA_DIR/data/other_all_image" "$REPO_ROOT/data/other_all_image"
-    elif [ -d "$TMP_DATA_DIR/other_all_image" ]; then
-        cp -r "$TMP_DATA_DIR/other_all_image" "$REPO_ROOT/data/other_all_image"
-    else
-        echo "WARNING: 解压后未找到 other_all_image 目录，请检查 $TMP_DATA_DIR 的内容"
-        echo "目录结构如下:"
-        ls "$TMP_DATA_DIR"
-        echo "手动将图片放到 $REPO_ROOT/data/other_all_image/ 后重新运行"
-        exit 1
+    # 复制图片到 data/other_all_image/
+    if [ ! -d "$REPO_ROOT/data/other_all_image" ]; then
+        if [ -d "$TMP_DATA_DIR/data/other_all_image" ]; then
+            cp -r "$TMP_DATA_DIR/data/other_all_image" "$REPO_ROOT/data/other_all_image"
+            echo "图片数据已就位"
+        else
+            echo "ERROR: 未找到 other_all_image，当前目录结构:"
+            ls "$TMP_DATA_DIR/data/" 2>/dev/null || ls "$TMP_DATA_DIR/"
+            exit 1
+        fi
     fi
-    echo "图片数据已就位"
+
+    # 定位 eval JSONL（可能在 data/raw/ 下，也可能在 git 仓库里）
+    if [ ! -f "$EVAL_JSONL" ]; then
+        JSONL_NAME="MindCube_tinybench_raw_qa.jsonl"
+        # 先在已下载数据里找
+        FOUND_JSONL=$(find "$TMP_DATA_DIR" -name "$JSONL_NAME" 2>/dev/null | head -1)
+        if [ -n "$FOUND_JSONL" ]; then
+            mkdir -p "$(dirname "$EVAL_JSONL")"
+            cp "$FOUND_JSONL" "$EVAL_JSONL"
+            echo "eval JSONL 已就位: $EVAL_JSONL"
+        else
+            # 尝试从 git 仓库获取
+            echo "在下载数据中未找到 $JSONL_NAME，尝试克隆 MindCube 仓库..."
+            git clone https://github.com/mll-lab-nu/MindCube.git "$MINDCUBE_DIR" || {
+                echo "ERROR: 克隆 MindCube 仓库失败，也未在下载数据中找到 eval JSONL"
+                exit 1
+            }
+        fi
+    fi
 fi
 
 # 最终检查
 if [ ! -d "$REPO_ROOT/data/other_all_image" ]; then
     echo "ERROR: 图片数据不存在于 $REPO_ROOT/data/other_all_image/"
-    echo "请手动下载 MindCube 图片数据"
+    exit 1
+fi
+if [ ! -f "$EVAL_JSONL" ]; then
+    echo "ERROR: eval JSONL 不存在于 $EVAL_JSONL"
     exit 1
 fi
 
